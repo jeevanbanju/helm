@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: jenkins-statefulset
+spec:
+  serviceName: "{{ .values.loadbalancer }}"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .values.appname }}
+  template:
+    metadata:
+      labels:
+        app: {{ .values.appname }}
+    spec:
+      initContainers:
+      - name: init-chown
+        image: alpine
+        command: ["sh", "-c", "chown -R 1000:1000 /var/jenkins_home"]
+        volumeMounts:
+        - name: {{ .values.mountvolume }}
+          mountPath: {{ .values.mountPath }}
+
+      containers:
+      - name: jenkins-container
+        image: "asia-south1-docker.pkg.dev/poshan-403704/poshan/express-app:120"
+        ports:
+        - name: http
+          containerPort: 8080
+        - name: https
+          containerPort: 8443
+        - name: udp-port
+          containerPort: 54321
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
+        volumeMounts:
+        - name: {{ .values.mountvolume }}
+          mountPath: {{ .values.mountPath }}
+      volumes:
+        - name: {{ .values.mountvolume }}
+          persistentVolumeClaim:
+            claimName: shared-data-pvc  
+
+
+
+  

@@ -1,0 +1,4 @@
+appname: jenkins
+loadbalancer: jenkins-loadbalancer-service
+mountvolume: jenkins-data
+mountPath: /var/jenkins_home
